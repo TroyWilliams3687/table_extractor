@@ -11,7 +11,7 @@ rich
 pandas
 numpy
 
-camelot-py[base]
+camelot-py[cv]
 
 # ----------
 # Jupyter Notebooks
