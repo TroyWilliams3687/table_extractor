@@ -18,7 +18,7 @@
 # System Modules - Included with Python
 
 from pathlib import Path
-
+from datetime import datetime
 
 # ------------
 # 3rd Party - From pip
@@ -49,70 +49,76 @@ import camelot
 )
 @click.option(
     "--export",
-    type=click.Choice(['CSV', 'Excel', 'HTML', 'JSON', 'MD', 'SQL'], case_sensitive=False),
+    type=click.Choice(['csv', 'excel', 'html', 'json', 'markdown', 'sqlite'], case_sensitive=False),
     multiple=True,  # allow them to specify multiple solvers to use
-    help="Export the tables to a particular format (CSV, Excel, HTML, JSON, md, SQL).",
+    help="Export the tables to a particular format (CSV, Excel, HTML, JSON, markdown, sqlite).",
+)
+@click.option(
+    "--pages",
+    type=str,
+    default='all',
+    help="Choose the pages to search. Example: ‘1,3,4’ or ‘1,4-end’ or ‘all’. Default: 'all'",
+)
+@click.option(
+    "--compress",
+    is_flag=True,
+    help="Compress the output data to a zip file. Only use compress with one export option at a time. Or it will overwrite other exports.",
 )
 def extract(*args, **kwargs):
     """
-    Given a PDF file, extract all of the tables.
+    Given a PDF file, extract all of the tables to various formats.
 
     # Usage
 
     $ te extract ./data/foo.pdf
 
-    $ te extract ./data/foo.pdf --export=csv --export=excel
+    $ te extract ./data/foo.pdf --export=csv --export=excel --compress --pages='75-85'
 
+    $ te extract ./data/foo.pdf --export=csv --export=excel --export=html --export=json --export=markdown --export=sqlite
+
+    NOTE: The `--compress` option should only be used with one export option at a time. It will overwrite the other options.
 
     """
     ctx = args[0]
 
+    build_start_time = datetime.now()
+
     pdf = kwargs['pdf']
 
-    tables = camelot.read_pdf(str(pdf))
+    # https://camelot-py.readthedocs.io/en/master/user/quickstart.html
+    tables = camelot.read_pdf(str(pdf), pages=kwargs['pages'])
 
     console.print(f'Found: {len(tables)} tables.')
 
-    for i, table in enumerate(tables):
-        console.print(f'Table {i} parsing report:')
-        console.print(table.parsing_report)
-        console.print()
-        console.print(table.df)
+    if len(tables) > 0:
 
         # https://camelot-py.readthedocs.io/en/master/api.html
+
         for export_format in kwargs['export']:
 
-            if export_format.lower() == 'csv':
-                output = pdf.parent / Path(f'{pdf.stem}.{i}.csv')
-                console.print(f'Export to {output}...')
-                table.to_csv(str(output))
+            extension = export_format.lower()
 
-            elif export_format.lower() == 'excel':
+            if export_format == 'excel':
+                extension = 'xlsx'
 
-                output = pdf.parent / Path(f'{pdf.stem}.{i}.xlsx')
-                console.print(f'Export to {output}...')
-                table.to_excel(str(output))
+            if export_format == 'markdown':
+                extension = 'md'
 
-            elif export_format.lower() == 'html':
+            output = pdf.parent / Path(f'{pdf.stem}.{extension}')
+            # output = pdf.parent / Path('table_output') / Path(f'{pdf.stem}.{extension}')
+            # output.parent.mkdir(parents=True, exists_ok=True)
 
-                output = pdf.parent / Path(f'{pdf.stem}.{i}.html')
-                console.print(f'Export to {output}...')
-                table.to_html(str(output))
+            console.print(f'Export to {output}...')
+            tables.export(str(output), f=export_format, compress=kwargs['compress'])
 
-            elif export_format.lower() == 'json':
+        console.print()
+        console.print('Complete...')
+        console.print()
 
-                output = pdf.parent / Path(f'{pdf.stem}.{i}.json')
-                console.print(f'Export to {output}...')
-                table.to_json(str(output))
+        build_end_time = datetime.now()
+        console.print(f"Started:   {build_start_time}")
+        console.print(f"Finished:  {build_end_time}")
+        console.print(f"Elapsed:   {build_end_time - build_start_time}")
+        console.print()
 
-            elif export_format.lower() == 'md':
 
-                output = pdf.parent / Path(f'{pdf.stem}.{i}.md')
-                console.print(f'Export to {output}...')
-                table.to_markdown(str(output))
-
-            elif export_format.lower() == 'sql':
-
-                output = pdf.parent / Path(f'{pdf.stem}.{i}.sqlite')
-                console.print(f'Export to {output}...')
-                table.to_sqlite(str(output))
