@@ -1,0 +1,40 @@
+# -----------
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022 Troy Williams
+
+# uuid       = 303a7c56-238e-11ec-811e-5d4d4c500ca4
+# author     = Troy Williams
+# email      = troy.williams@bluebill.net
+# date       = 2021-10-02
+# -----------
+
+# -----------
+# Information
+
+# This makefile provides useful commands for launch Jupyter notebooks or Jupyter
+# labs. It assumes that either is installed properly in the virtual environment.
+
+## make extensions - Install the Jupyter notebook extensions
+.PHONY: extensions
+extensions: $(VENV)
+	@$(BIN)/jupyter contrib nbextension install --user
+
+# NOTE: You should modify the Makefile.python venv target to run this target after the venv is created. Something like this:
+# `venv: $(VENV)/$(MARKER) extensions`
+
+#-----
+# make launch
+
+## make launch - Launch Jupyter Notebook Interface.
+.PHONY: launch
+launch: $(VENV)
+	@$(BIN)/jupyter notebook --notebook-dir="."
+
+
+#-----
+# make lab
+
+## make lab - Launch Jupyter Lab Interface.
+.PHONY: lab
+lab: $(VENV)
+	@$(BIN)/jupyter lab --notebook-dir="."
