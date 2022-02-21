@@ -5,7 +5,6 @@ This is a wrapper for the [camelot][1] module. It can extract tabular informatio
 [1]: https://camelot-py.readthedocs.io/en/master/
 [2]: https://click.palletsprojects.com/en/8.0.x/
 
-
 To list the number of tables it can see in a pdf:
 
 ```bash
@@ -18,14 +17,13 @@ Extract the table data to CSV and Excel to the same folder as the pdf:
 $ te extract ./data/foo.pdf --export=csv --export=excel
 ```
 
-
 You can compress the output into a zip file using the `--compress` switch:
 
 ```bash
 $ te extract ./data/foo.pdf --export=csv --compress
 ```
 
->NOTE: The `--compress` switch is really only suitable for one export type as it will create a zip file named after the PDF file and overwrite any other export option.
+>NOTE: The `--compress` switch is really only suitable for one export switch at a time. It will create a zip file named after the PDF file and overwrite any other export options.
 
 
 Extract table data from particular pages:
