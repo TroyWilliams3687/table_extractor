@@ -40,6 +40,7 @@ import camelot
 @click.pass_context
 @click.argument(
     "pdf",
+    nargs=-1,
     type=click.Path(
         exists=True,
         dir_okay=False,
@@ -74,6 +75,8 @@ def extract(*args, **kwargs):
 
     $ te extract ./data/foo.pdf --export=csv --export=excel --compress --pages='75-85'
 
+    $ te extract ./data/foo.pdf ./data/foo2.pdf --export=csv --export=excel
+
     $ te extract ./data/foo.pdf --export=csv --export=excel --export=html --export=json --export=markdown --export=sqlite
 
     NOTE: The `--compress` option should only be used with one export option at a time. It will overwrite the other options.
@@ -83,42 +86,49 @@ def extract(*args, **kwargs):
 
     build_start_time = datetime.now()
 
-    pdf = kwargs['pdf']
+    pdfs = kwargs['pdf']
 
-    # https://camelot-py.readthedocs.io/en/master/user/quickstart.html
-    tables = camelot.read_pdf(str(pdf), pages=kwargs['pages'])
+    console.print()
 
-    console.print(f'Found: {len(tables)} tables.')
+    for pdf in pdfs:
 
-    if len(tables) > 0:
+        console.print(f'Processing {pdf}...')
 
-        # https://camelot-py.readthedocs.io/en/master/api.html
+        # https://camelot-py.readthedocs.io/en/master/user/quickstart.html
+        tables = camelot.read_pdf(str(pdf), pages=kwargs['pages'])
 
-        for export_format in kwargs['export']:
+        console.print(f'Found: {len(tables)} tables.')
 
-            extension = export_format.lower()
+        if len(tables) > 0:
 
-            if export_format == 'excel':
-                extension = 'xlsx'
+            # https://camelot-py.readthedocs.io/en/master/api.html
 
-            if export_format == 'markdown':
-                extension = 'md'
+            for export_format in kwargs['export']:
 
-            output = pdf.parent / Path(f'{pdf.stem}.{extension}')
-            # output = pdf.parent / Path('table_output') / Path(f'{pdf.stem}.{extension}')
-            # output.parent.mkdir(parents=True, exists_ok=True)
+                extension = export_format.lower()
 
-            console.print(f'Export to {output}...')
-            tables.export(str(output), f=export_format, compress=kwargs['compress'])
+                if export_format == 'excel':
+                    extension = 'xlsx'
 
-        console.print()
-        console.print('Complete...')
-        console.print()
+                if export_format == 'markdown':
+                    extension = 'md'
 
-        build_end_time = datetime.now()
-        console.print(f"Started:   {build_start_time}")
-        console.print(f"Finished:  {build_end_time}")
-        console.print(f"Elapsed:   {build_end_time - build_start_time}")
-        console.print()
+                output = pdf.parent / Path(f'{pdf.stem}.{extension}')
+                # output = pdf.parent / Path('table_output') / Path(f'{pdf.stem}.{extension}')
+                # output.parent.mkdir(parents=True, exists_ok=True)
+
+                console.print(f'Export to {output}...')
+                tables.export(str(output), f=export_format, compress=kwargs['compress'])
+
+            console.print()
+            console.print('Complete...')
+            console.print()
+
+            build_end_time = datetime.now()
+            console.print(f"Started:   {build_start_time}")
+            console.print(f"Finished:  {build_end_time}")
+            console.print(f"Elapsed:   {build_end_time - build_start_time}")
+            console.print()
+            console.print('-------------')
 
 
